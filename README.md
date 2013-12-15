@@ -3,7 +3,7 @@
 
 qviz is a R package supporting quick visualization of data. qviz can be used during the data exploration stage which is the essential part of any data analysis. Users just need to specify formula and data, and the tool draws charts that intuitively make sense. Types, colors and all the details of the charts are determined by the package automatically.
 
-qviz provides with a single function, qviz() whose parameters are formula and data.
+qviz provides with a single function: qviz(formula, data).
 
 ## Example
 
