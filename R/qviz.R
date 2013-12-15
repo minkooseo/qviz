@@ -31,19 +31,14 @@ draw <- function(x, y, data, want_regression=FALSE, want_ellipse=FALSE, col=1, p
   drawing$col <- col
   drawing$pch <- pch
   drawing$points <- data.frame(x=data[, x], y=data[, y])
-#   plot(data[, x], data[, y], xlab=x, ylab=y, xlim=panel_min_max$xlim, ylim=panel_min_max$ylim)
-  if (!is.factor(data[, x]) && !is.factor(data[, y])) {
+  if (want_regression) {
     drawing$lm <- lm(data[, y] ~ data[, x])
   }
-  if (!is.factor(data[, x]) && is.factor(data[, y])) {
+  if (want_ellipse) {
     drawing$ellipse <- compute_ellipse_points(x, y, data)
   }
   return(drawing)
 }
-
-# draw_one_panel("Sepal.Length", "Petal.Width", iris)
-# draw_one_panel("Sepal.Length", "Petal.Width", iris, want_regression=TRUE)
-# draw_one_panel("Sepal.Length", "Petal.Width", iris, want_ellipse=TRUE)
 
 show <- function(drawing, as_new_plot=TRUE, ...) {
   if (as_new_plot) {
@@ -65,9 +60,8 @@ get_label <- function(all_drawings) {
     ylab=paste(unique(sapply(all_drawings, function(d) { d$ylab })), collapse=", ")))
 }
 
-show_multiple_drawings <- function(all_drawings) {
+show_multiple_drawings <- function(all_drawings, legend=NULL) {
   if (NROW(all_drawings) > 0) {
-    browser()
     all_xlim <- sapply(all_drawings, function(elem) { elem$xlim })
     all_ylim <- sapply(all_drawings, function(elem) { elem$ylim })
     labels <- get_label(all_drawings)
@@ -79,7 +73,8 @@ show_multiple_drawings <- function(all_drawings) {
     for (i in seq_along(all_drawings)) {
       show(all_drawings[[i]], as_new_plot=FALSE)
     }
-    legend("topleft", sapply(all_drawings, function(d) { d$xlab }),
+    legend("topleft", 
+           legend=if(is.null(legend)) sapply(all_drawings, function(d) { d$xlab }) else legend,
            col=seq_along(all_drawings) + 1, pch=seq_along(all_drawings) + 1) 
   }
 }
@@ -102,8 +97,12 @@ qviz <- function(formula, data, force_regression=FALSE, ...) {
       } else if (is.factor(data[, lv]) && !is.factor(data[, rv])) {
         # Draw boxplot, and data points over it.
         boxplot(as.formula(paste(rv, "~", lv)), data=data, ylab=rv)
-        col <- rgb(.3, .3, 1, 0.4)
-        points(jitter(as.numeric(data[, lv])), jitter(data[, rv]), col=col, bg=col, cex=0.5, pch=21)
+#         col <- rgb(.3, .3, 1, 0.4)
+        for (lvl_idx in seq(nlevels(data[, lv]))) {
+          sub_data <- subset(data, data[, lv] == levels(data[, lv])[lvl_idx])
+          points(jitter(as.numeric(sub_data[, lv])), jitter(sub_data[, rv]), 
+                 col=(lvl_idx + 1), pch=(lvl_idx + 1), cex=0.7)
+        }
       } else {
         # Rely on R's plot().
         plot(as.formula(paste(lv, "~", rv)), data=data)
@@ -111,25 +110,31 @@ qviz <- function(formula, data, force_regression=FALSE, ...) {
       i <- i + 1
     }
     show_multiple_drawings(all_drawings)
-#     idx <- 1
-#     if (NROW(rvars) >= 2) {
-#       for (i in 1:(NROW(rvars) - 1)) {
-#         for (j in (i + 1):NROW(rvars)) {
-#           rv1 = rvars[j] # Keep x axis the same while changing y
-#           rv2 = rvars[i]
-#           if (is.factor(data[, lv]) && !is.factor(data[, rv1]) && !is.factor(data[, rv2])) {
-#             all_drawings[[idx]] <- draw(rvars[j], rvars[i], data, want_ellipse=TRUE)
-#             idx <- idx + 1
-#           } else if (!is.factor(data[, lv]) && !is.factor(data[, rv1]) && !is.factor(data[, rv2])) {
-#             all_drawings[[idx]] <- draw(rvars[j], rvars[i], data, want_regression=TRUE)
-#             idx <- idx + 1
-#           }
-#         }
-#       }
-#     }
+    if (is.factor(data[, lv]) && NROW(rvars) >= 2) {
+      for (rvar_i in 1:(NROW(rvars) - 1)) {
+        for (rvar_j in (rvar_i + 1):NROW(rvars)) {
+          rv_x = rvars[rvar_j] # Keep y axis the same while changing x
+          rv_y = rvars[rvar_i]
+          if (is.factor(data[, rv_x]) || is.factor(data[, rv_y])) {
+            next
+          }
+          i <- 1
+          all_drawings <- list()
+          for (lvl in levels(data[, lv])) {
+            all_drawings[[i]] <- draw(rv_x, rv_y, data[data[, lv] == lvl, ], 
+                                      want_ellipse=TRUE, col=(i + 1), pch=(i + 1))
+            i <- i + 1
+          }
+          show_multiple_drawings(all_drawings, legend=paste(levels(data[, lv])))
+        }
+      }
+    }
   }
 }
+
 qviz(Species ~ Sepal.Length, data=iris)
+qviz(Species ~ Sepal.Length + Petal.Length + Petal.Width, data=iris)
+
 qviz(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data=iris)
 
 
