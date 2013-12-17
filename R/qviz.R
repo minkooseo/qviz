@@ -137,9 +137,6 @@ qviz <- function(formula, data, force_regression=FALSE, ...) {
         }
       }
       # For all numeric, draw scatter plot with ellipse representing classes.
-      rvars <- names(iris)
-      data <- iris
-      lv <- "Species"
       numeric_rvars <- rvars[sapply(rvars, function(rv) { !is.factor(data[, rv]) })]
       # Reconstruct data containing (Score1, Score2, LV)
       pc <- princomp(data[, numeric_rvars])
