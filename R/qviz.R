@@ -21,7 +21,7 @@ GetPanelMinMax <- function(x, y, data, want_ellipse) {
               ylim=MinMaxWithMargin(data[, y])))
 }
 
-draw <- function(x, y, data, want_regression=FALSE, want_ellipse=FALSE, col=1, pch=1, ...) {
+draw <- function(x, y, data, want_regression=FALSE, want_pca=FALSE, want_ellipse=FALSE, col=1, pch=1, ...) {
   drawing <- list()
   drawing$xlab <- x
   drawing$ylab <- y
@@ -39,6 +39,19 @@ draw <- function(x, y, data, want_regression=FALSE, want_ellipse=FALSE, col=1, p
   }
   return(drawing)
 }
+
+
+draw_scatter_plot_with_class_ellipse <- function(x, y, lv, data) {
+  i <- 1
+  all_drawings <- list()
+  for (lvl in levels(data[, lv])) {
+    all_drawings[[i]] <- draw(x, y, data[data[, lv] == lvl, ], 
+                              want_ellipse=TRUE, col=(i + 1), pch=(i + 1))
+    i <- i + 1
+  }
+  return(all_drawings)
+}
+
 
 show <- function(drawing, as_new_plot=TRUE, ...) {
   if (as_new_plot) {
@@ -60,7 +73,7 @@ get_label <- function(all_drawings) {
     ylab=paste(unique(sapply(all_drawings, function(d) { d$ylab })), collapse=", ")))
 }
 
-show_multiple_drawings <- function(all_drawings, legend=NULL) {
+show_multiple_drawings <- function(all_drawings, legend=NULL, ...) {
   if (NROW(all_drawings) > 0) {
     all_xlim <- sapply(all_drawings, function(elem) { elem$xlim })
     all_ylim <- sapply(all_drawings, function(elem) { elem$ylim })
@@ -69,7 +82,8 @@ show_multiple_drawings <- function(all_drawings, legend=NULL) {
          xlim=c(min(all_xlim), max(all_xlim)),
          ylim=c(min(all_ylim), max(all_ylim)),
          xlab=labels$xlab,
-         ylab=labels$ylab)
+         ylab=labels$ylab,
+         ...)
     for (i in seq_along(all_drawings)) {
       show(all_drawings[[i]], as_new_plot=FALSE)
     }
@@ -97,7 +111,6 @@ qviz <- function(formula, data, force_regression=FALSE, ...) {
       } else if (is.factor(data[, lv]) && !is.factor(data[, rv])) {
         # Draw boxplot, and data points over it.
         boxplot(as.formula(paste(rv, "~", lv)), data=data, ylab=rv)
-#         col <- rgb(.3, .3, 1, 0.4)
         for (lvl_idx in seq(nlevels(data[, lv]))) {
           sub_data <- subset(data, data[, lv] == levels(data[, lv])[lvl_idx])
           points(jitter(as.numeric(sub_data[, lv])), jitter(sub_data[, rv]), 
@@ -111,6 +124,7 @@ qviz <- function(formula, data, force_regression=FALSE, ...) {
     }
     show_multiple_drawings(all_drawings)
     if (is.factor(data[, lv]) && NROW(rvars) >= 2) {
+      # For ever pair of numberic, draw scatter plot with ellipse representing classes.
       for (rvar_i in 1:(NROW(rvars) - 1)) {
         for (rvar_j in (rvar_i + 1):NROW(rvars)) {
           rv_x = rvars[rvar_j] # Keep y axis the same while changing x
@@ -118,24 +132,31 @@ qviz <- function(formula, data, force_regression=FALSE, ...) {
           if (is.factor(data[, rv_x]) || is.factor(data[, rv_y])) {
             next
           }
-          i <- 1
-          all_drawings <- list()
-          for (lvl in levels(data[, lv])) {
-            all_drawings[[i]] <- draw(rv_x, rv_y, data[data[, lv] == lvl, ], 
-                                      want_ellipse=TRUE, col=(i + 1), pch=(i + 1))
-            i <- i + 1
-          }
-          show_multiple_drawings(all_drawings, legend=paste(levels(data[, lv])))
+          show_multiple_drawings(draw_scatter_plot_with_class_ellipse(rv_x, rv_y, lv, data), 
+                                 legend=paste(levels(data[, lv])))
         }
       }
+      # For all numeric, draw scatter plot with ellipse representing classes.
+      rvars <- names(iris)
+      data <- iris
+      lv <- "Species"
+      numeric_rvars <- rvars[sapply(rvars, function(rv) { !is.factor(data[, rv]) })]
+      # Reconstruct data containing (Score1, Score2, LV)
+      pc <- princomp(data[, numeric_rvars])
+      pca_data <- cbind(as.data.frame(predict(pc, newdata=data)[, 1:2]), 
+                        data[, lv])
+      names(pca_data) <- c("PC1", "PC2", lv)
+      prop_of_variance <- (summary(pc)$sdev ^ 2) / sum(summary(pc)$sdev ^ 2)
+      subtitle <-sprintf(paste0("PC1 (Proportion of Variance: %.2f) and ",
+          "PC2(Proportion of Variance: %.2f)"), prop_of_variance[1], prop_of_variance[2])
+      show_multiple_drawings(draw_scatter_plot_with_class_ellipse("PC1", "PC2", lv, pca_data),
+                             legend=paste(levels(data[, lv])),
+                             main=paste("PCA of", paste(numeric_rvars, collapse=", ")),
+                             sub=subtitle)
     }
   }
 }
 
-qviz(Species ~ Sepal.Length, data=iris)
-qviz(Species ~ Sepal.Length + Petal.Length + Petal.Width, data=iris)
-
-qviz(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data=iris)
 
 
 
