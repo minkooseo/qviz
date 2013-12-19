@@ -93,12 +93,27 @@ show_multiple_drawings <- function(all_drawings, legend=NULL, ...) {
   }
 }
 
+get_numeric_vars <- function(vars, data) {
+  return(vars[sapply(vars, function(v) { !is.factor(data[, v]) })])
+}
+
+show_numeric_vars <- function(vars, data) {
+  numeric_vars <- get_numeric_vars(vars, data)
+  if (NROW(numeric_vars) == 1) {
+    boxplot(data[, numeric_vars], xlab=numeric_vars[1])
+  } else if (NROW(numeric_vars) > 0) {
+    boxplot(data[, numeric_vars])
+  }
+}
+
 qviz <- function(formula, data, force_regression=FALSE, ...) {
 #   par(ask=TRUE)
   require(formula.tools)
   require(foreach)
   lvars <- lhs.vars(formula)
   rvars <- rhs.vars(formula)
+  show_numeric_vars(lvars, data)
+  show_numeric_vars(rvars, data)
   for (lv in lvars) {
     i = 1
     all_drawings <- list()
@@ -136,66 +151,22 @@ qviz <- function(formula, data, force_regression=FALSE, ...) {
                                  legend=paste(levels(data[, lv])))
         }
       }
-      # For all numeric, draw scatter plot with ellipse representing classes.
-      numeric_rvars <- rvars[sapply(rvars, function(rv) { !is.factor(data[, rv]) })]
-      # Reconstruct data containing (Score1, Score2, LV)
-      pc <- princomp(data[, numeric_rvars])
-      pca_data <- cbind(as.data.frame(predict(pc, newdata=data)[, 1:2]), 
-                        data[, lv])
-      names(pca_data) <- c("PC1", "PC2", lv)
-      prop_of_variance <- (summary(pc)$sdev ^ 2) / sum(summary(pc)$sdev ^ 2)
-      subtitle <-sprintf(paste0("PC1 (Proportion of Variance: %.2f) and ",
-          "PC2(Proportion of Variance: %.2f)"), prop_of_variance[1], prop_of_variance[2])
-      show_multiple_drawings(draw_scatter_plot_with_class_ellipse("PC1", "PC2", lv, pca_data),
-                             legend=paste(levels(data[, lv])),
-                             main=paste("PCA of", paste(numeric_rvars, collapse=", ")),
-                             sub=subtitle)
+      numeric_rvars <- get_numeric_vars(rvars, data)
+      if (NROW(numeric_rvars) >= 3) {
+        # For all numeric, draw scatter plot with ellipse representing classes.
+        # Reconstruct data containing (Score1, Score2, LV)
+        pc <- princomp(data[, numeric_rvars])
+        pca_data <- cbind(as.data.frame(predict(pc, newdata=data)[, 1:2]), 
+                          data[, lv])
+        names(pca_data) <- c("PC1", "PC2", lv)
+        prop_of_variance <- (summary(pc)$sdev ^ 2) / sum(summary(pc)$sdev ^ 2)
+        subtitle <-sprintf(paste0("PC1 (Proportion of Variance: %.2f) and ",
+            "PC2(Proportion of Variance: %.2f)"), prop_of_variance[1], prop_of_variance[2])
+        show_multiple_drawings(draw_scatter_plot_with_class_ellipse("PC1", "PC2", lv, pca_data),
+                               legend=paste(levels(data[, lv])),
+                               main=paste("PCA of", paste(numeric_rvars, collapse=", ")),
+                               sub=subtitle)
+      }
     }
   }
 }
-
-
-
-
-rvars <- c("Sepal.Length", "Petal.Length", "Petal.Width")
-for(i in 1:(NROW(rvars) - 1)) {
-  for (j in (i + 1):NROW(rvars)) {
-    print(rvars[i])
-    print(rvars[j])
-    print("-------")
-    show(draw(rvars[j], rvars[i], iris, want_ellipse=TRUE))
-  }
-}
-
-qviz(Species  ~ Sepal.Width + Petal.Length + Sepal.Length, data=iris)
-
-qviz(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data=iris, force_regression=TRUE)
-
-
-qviz(Sepal.Length  + Petal.Width~ Sepal.Width + Petal.Length , data=iris)
-
-
-
-qviz(Sepal.Width + Petal.Length ~ Species , data=iris)
-
-
-library(formula.tools)
-data(iris)
-
-plot(Species ~ ., data=iris)
-with(iris, plot(Species + Sepal.Width ~ Sepal.Length))
-
-hist(Spec)
-
-with(iris, plot(Sepal.Width ~ Sepal.Length + Petal.Width))
-
-with(iris, plot(Sepal.Width ~ Sepal.Length))
-
-
-form <- Sepal.Width ~ Sepal.Length + Petal.Width
-class(form)
-model.matrix(Sepal.Width ~ Sepal.Length + Species, data=iris)
-
-
-
-all.names(Sepal.Width ~ Sepal.Length * Petal.Width + Petal.Length)
