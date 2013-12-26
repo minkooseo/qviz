@@ -1,4 +1,3 @@
 exportPattern("qviz")
-import(foreach)
 import(ellipse)
 import(formula.tools)
