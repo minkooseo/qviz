@@ -5,18 +5,27 @@ qviz is a R package supporting quick visualization of data. qviz can be used dur
 
 qviz provides with a single function: qviz(formula, data).
 
+## Installation
+
+    > install.packages("devtools")
+    > library(devtools)
+    > install_github('qviz','minkooseo')
+
 ## Example
+
+Commands in the below renders several plots. To review them, use either 'par(ask=TRUE)' or appropriate layout commands. If you want output like the below, look at this  [script](https://github.com/minkooseo/qviz/blob/master/_images/update_images.R).
+
 
 ### Numeric Y with numeric Xs
 
-    data(iris)
-    qviz(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data=iris)
+    > data(iris)
+    > qviz(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data=iris)
     
 ![screenshot](https://github.com/minkooseo/qviz/raw/master/_images/sepal_length_for_multiple_ivs.png)
 
 ### Factor Y with numeric Xs
 
-    data(iris)
-    qviz(Species ~ Sepal.Length + Petal.Length + Petal.Width, data=iris)
+    > data(iris)
+    > qviz(Species ~ Sepal.Length + Petal.Length + Petal.Width, data=iris)
 
 ![screenshot2](https://github.com/minkooseo/qviz/raw/master/_images/species_for_multiple_ivs.png)
