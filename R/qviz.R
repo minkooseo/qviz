@@ -116,6 +116,7 @@ qviz <- function(formula, data, ...) {
   for (lv in lvars) {
     i = 1
     all_drawings <- list()
+    ### For single rvar
     for (rv in rvars) {
       if (!is.factor(data[, lv]) && !is.factor(data[, rv])) {
         # Draw scatter plot of lv ~ rv and regression.
@@ -139,23 +140,21 @@ qviz <- function(formula, data, ...) {
     if (NROW(all_drawings) > 1) {
       show_multiple_drawings(all_drawings)
     }
-    if (is.factor(data[, lv]) && NROW(rvars) >= 2) {
+    ### For multiple rvars, i.e., interaction.
+    numeric_rvars <- get_numeric_vars(rvars, data)
+    if (is.factor(data[, lv]) && NROW(numeric_rvars) >= 2) {
       # For ever pair of numberic, draw scatter plot with ellipse representing classes.
-      for (rvar_i in 1:(NROW(rvars) - 1)) {
-        for (rvar_j in (rvar_i + 1):NROW(rvars)) {
-          rv_x = rvars[rvar_j] # Keep y axis the same while changing x
-          rv_y = rvars[rvar_i]
-          if (is.factor(data[, rv_x]) || is.factor(data[, rv_y])) {
-            next
-          }
+      for (rvar_i in 1:(NROW(numeric_rvars) - 1)) {
+        for (rvar_j in (rvar_i + 1):NROW(numeric_rvars)) {
+          rv_x = numeric_rvars[rvar_j] # Keep y axis the same while changing x
+          rv_y = numeric_rvars[rvar_i]
           show_multiple_drawings(draw_scatter_plot_with_class_ellipse(rv_x, rv_y, lv, data), 
                                  legend=paste(levels(data[, lv])))
         }
       }
-      numeric_rvars <- get_numeric_vars(rvars, data)
+      # For all numeric, draw scatter plot with ellipse representing classes.
+      # Reconstruct data containing (Score1, Score2, LV)
       if (NROW(numeric_rvars) >= 3) {
-        # For all numeric, draw scatter plot with ellipse representing classes.
-        # Reconstruct data containing (Score1, Score2, LV)
         pc <- princomp(data[, numeric_rvars])
         pca_data <- cbind(as.data.frame(predict(pc, newdata=data)[, 1:2]), 
                           data[, lv])
