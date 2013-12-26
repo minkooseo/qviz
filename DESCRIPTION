@@ -1,9 +1,10 @@
 Package: qviz
 Type: Package
-Title: What the package does (short line)
-Version: 1.0
-Date: 2013-12-14
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Title: Quick Visualization (qviz) in R
+Version: 0.1
+Date: 2013-12-25
+Author: Minkoo Seo <minkoo.seo@gmail.com>
+Maintainer: Minkoo Seo <minkoo.seo@gmail.com>
+Description: qviz is a R package supporting quick visualization of data. qviz can be used during the data exploration stage which is the essential part of any data analysis. Users just need to specify formula and data, and the tool draws charts that intuitively make sense. Types, colors and all the details of the charts are determined by the package automatically. qviz provides with a single function: qviz(formula, data).
+License: GPL-2
+Depends: foreach, formula.tools, ellipse

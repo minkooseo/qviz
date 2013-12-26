@@ -1,3 +1,4 @@
-exportPattern("^[[:alpha:]]+")
-importFrom(formula.tools, lhs.vars, rhs.vars)
-importFrom(foreach, foreach)
+exportPattern("qviz")
+import(foreach)
+import(ellipse)
+import(formula.tools)

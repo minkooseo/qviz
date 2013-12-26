@@ -1,5 +1,4 @@
 compute_ellipse_points <- function(x, y, data) {
-  require(ellipse)
   return(ellipse(var(data[, c(x, y)]),
                  centre=colMeans(data[, c(x, y)]),
                  level=0.95))
@@ -21,6 +20,8 @@ GetPanelMinMax <- function(x, y, data, want_ellipse) {
               ylim=MinMaxWithMargin(data[, y])))
 }
 
+# TODO: Instead of relying on list, create a list of classes and have each class
+# render corresponding chart.
 draw <- function(x, y, data, want_regression=FALSE, want_pca=FALSE, want_ellipse=FALSE, col=1, pch=1, ...) {
   drawing <- list()
   drawing$xlab <- x
@@ -106,10 +107,8 @@ show_numeric_vars <- function(vars, data) {
   }
 }
 
-qviz <- function(formula, data, force_regression=FALSE, ...) {
+qviz <- function(formula, data, ...) {
 #   par(ask=TRUE)
-  require(formula.tools)
-  require(foreach)
   lvars <- lhs.vars(formula)
   rvars <- rhs.vars(formula)
   show_numeric_vars(lvars, data)
