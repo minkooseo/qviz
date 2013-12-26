@@ -1,5 +1,3 @@
-source("../R/qviz.R")
-
 png("_images/species_for_multiple_ivs.png", width=1000, height=2000, res=150)
 layout(matrix(c(1:7, 9, 8, 8), nr=5, byrow=TRUE))
 qviz(Species ~ Sepal.Length + Petal.Length + Petal.Width, data=iris)
