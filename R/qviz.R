@@ -122,6 +122,7 @@ qviz <- function(formula, data, ...) {
         drawing <- draw(rv, lv, data, want_regression=!is.factor(data[, lv]), col=(i + 1), pch=(i + 1))
         show(drawing)
         all_drawings[[i]] <- drawing
+        i <- i + 1
       } else if (is.factor(data[, lv]) && !is.factor(data[, rv])) {
         # Draw boxplot, and data points over it.
         boxplot(as.formula(paste(rv, "~", lv)), data=data, ylab=rv)
@@ -134,9 +135,10 @@ qviz <- function(formula, data, ...) {
         # Rely on R's plot().
         plot(as.formula(paste(lv, "~", rv)), data=data)
       }
-      i <- i + 1
     }
-    show_multiple_drawings(all_drawings)
+    if (NROW(all_drawings) > 1) {
+      show_multiple_drawings(all_drawings)
+    }
     if (is.factor(data[, lv]) && NROW(rvars) >= 2) {
       # For ever pair of numberic, draw scatter plot with ellipse representing classes.
       for (rvar_i in 1:(NROW(rvars) - 1)) {
