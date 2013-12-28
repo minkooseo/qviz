@@ -178,26 +178,28 @@ qviz_classification <- function(lv, numeric_rvars, data, condition="") {
   }
 }
 
+qviz_pca_classification <- function(lv, numeric_rvars, data) {
+  pc <- princomp(data[, numeric_rvars])
+  pca_data <- cbind(as.data.frame(predict(pc, newdata=data)[, 1:2]), 
+                    data[, lv])
+  names(pca_data) <- c("PC1", "PC2", lv)
+  prop_of_variance <- (summary(pc)$sdev ^ 2) / sum(summary(pc)$sdev ^ 2)
+  subtitle <-sprintf(paste0("PC1(Proportion of Variance: %.2f) and ",
+                            "PC2(Proportion of Variance: %.2f)"), prop_of_variance[1], prop_of_variance[2])
+  show_multiple_drawings(draw_scatter_plot_with_class_ellipse("PC1", "PC2", lv, pca_data),
+                         legend=paste(levels(data[, lv])),
+                         main=paste(lv, "~ PC1 + PC2\n",
+                                    "PCA of", paste(numeric_rvars, collapse=", ")),
+                         sub=subtitle)  
+}
+
 qviz_multiple_rhs <- function(lv, rvars, data) {
   numeric_rvars <- get_numeric_vars(rvars, data)
   # If this is classification problem.
   if (is.factor(data[, lv]) && NROW(numeric_rvars) >= 2) {
     qviz_classification(lv, numeric_rvars, data)
-    
-    # For all numeric, run PCA and draw 2D scatter plot with ellipse representing classes.
     if (NROW(numeric_rvars) >= 3) {
-      pc <- princomp(data[, numeric_rvars])
-      pca_data <- cbind(as.data.frame(predict(pc, newdata=data)[, 1:2]), 
-                        data[, lv])
-      names(pca_data) <- c("PC1", "PC2", lv)
-      prop_of_variance <- (summary(pc)$sdev ^ 2) / sum(summary(pc)$sdev ^ 2)
-      subtitle <-sprintf(paste0("PC1(Proportion of Variance: %.2f) and ",
-                                "PC2(Proportion of Variance: %.2f)"), prop_of_variance[1], prop_of_variance[2])
-      show_multiple_drawings(draw_scatter_plot_with_class_ellipse("PC1", "PC2", lv, pca_data),
-                             legend=paste(levels(data[, lv])),
-                             main=paste(lv, "~ PC1 + PC2\n",
-                                        "PCA of", paste(numeric_rvars, collapse=", ")),
-                             sub=subtitle)
+      qviz_pca_classification(lv, numeric_rvars, data)
     }
   }
   factor_rvars <- get_factor_vars(rvars, data)
