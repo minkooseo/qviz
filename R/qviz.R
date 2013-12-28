@@ -130,7 +130,7 @@ qviz_numeric_vars <- function(vars, data, ...) {
 # "y ~ x (condition)" if condition is not empty string.
 # "y ~ x", otherwise.
 main_title <- function(y, x, condition) {
-  return(paste0(y, " ~ ", x, ifelse(condition == "", "", paste0(" (", condition, ")"))))
+  return(paste0(y, " ~ ", x, ifelse(condition == "", "", paste0("\n(", condition, ")"))))
 }
 
 qviz_single_rhs <- function(lv, rvars, data, condition="", ...) {
