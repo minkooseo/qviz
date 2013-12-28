@@ -20,12 +20,27 @@ Commands in the below renders several plots. To review them, use either 'par(ask
 
     > data(iris)
     > qviz(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data=iris)
-    
-![screenshot](https://github.com/minkooseo/qviz/raw/master/_images/sepal_length_for_multiple_ivs.png)
+
+![screenshot](https://github.com/minkooseo/qviz/raw/master/_images/numeric_for_numeric.png)
+
+### Numeric Y with numeric and factor X
+
+    > data(iris)
+    > qviz(Petal.Length ~ Species + Sepal.Width + Sepal.Length, data=iris)
+
+![screenshot3](https://github.com/minkooseo/qviz/raw/master/_images/numeric_for_factor_and_numeric.png)
 
 ### Factor Y with numeric Xs
 
     > data(iris)
     > qviz(Species ~ Sepal.Length + Petal.Length + Petal.Width, data=iris)
 
-![screenshot2](https://github.com/minkooseo/qviz/raw/master/_images/species_for_multiple_ivs.png)
+![screenshot2](https://github.com/minkooseo/qviz/raw/master/_images/factor_for_numeric.png)
+
+### Factor Y with numeric and factor X
+    
+    > library(mlbench)
+    > data(BreastCancer)
+    > qviz(Class ~ Cl.thickness + Cell.size + Bl.cromatin, data=BreastCancer)
+
+![screenshot4](https://github.com/minkooseo/qviz/raw/master/_images/factor_for_factor_and_numeric.png)
